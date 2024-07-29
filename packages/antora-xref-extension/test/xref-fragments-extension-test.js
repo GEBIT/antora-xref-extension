@@ -664,6 +664,27 @@ describe('xref extension', () => {
       expect(loggerDestination.messages).to.be.empty()
     })
 
+    it('should not fail but log a warning on unexpected syntax', () => {
+      const extensionConfig = {
+        logUnnecessaryLinkTextWarnings: false,
+      }
+      addFile(
+        'bad.adoc',
+        heredoc`
+      = Bad
+
+      bad::
+      `
+      )
+      run(extensionConfig)
+      const page = contentCatalog.getPages((candidate) => candidate.path === '/bad.adoc')[0]
+      expect(
+        loggerDestination.messages.some(
+          (message) => message.includes('"level":"warn"') && message.includes('Parse error when validating xrefs.')
+        )
+      ).to.be.true()
+    })
+
     function addFile (filename, contents) {
       contents = Buffer.from(contents)
       const mediaType = 'text/asciidoc'
